@@ -32,13 +32,15 @@ class User(models.Model):
 class Transaction(models.Model):
     user_id=models.ForeignKey(User,on_delete=models.CASCADE,null=True)
     deposit_amount=models.FloatField(max_length=20)
-    
+
     withdraw_amount=models.FloatField(max_length=20)
+    transaction_type=models.CharField(default="Blank",max_length=50)
+
 
     class Meta:
                 # db_table = 'user'
                 indexes = [
-                models.Index(fields=['deposit_amount','withdraw_amount']),
+                models.Index(fields=['deposit_amount','withdraw_amount','transaction_type']),
                 ]
 
 
