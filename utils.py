@@ -1,7 +1,11 @@
+from functools import wraps
+from urllib import request, response
 import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
+from rest_framework import status
+from django.http import HttpResponse, JsonResponse
 
 # Secret key for signing the JWT
 SECRET_KEY = settings.SECRET_KEY
@@ -33,6 +37,38 @@ def decode_token(token):
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         return payload
     except jwt.ExpiredSignatureError:
-        return None
+        return JsonResponse({"message": "Token is expired"}, status=status.HTTP_498_INVALID_TOKEN)
     except jwt.InvalidTokenError:
-        return None
+        return JsonResponse({"message": "Invalid token"}, status=status.HTTP_403_FORBIDDEN)
+
+def is_auth(fun):
+    @wraps(fun)
+    def wrap(request,*args, **kwargs):
+        print("Line 49>>>",request.headers)
+        print("Line 50",request,*args,**kwargs)
+        # print("Line 51>>>",request.data)
+
+        try:
+           token= request.headers.get('Authorization')
+         
+           if not token:
+              return response({"message": "Token is missing!"}, status=status.HTTP_403_FORBIDDEN)
+           
+           decode_token_result = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])#(token)
+    
+           request.decoded_token_result = decode_token_result
+           request.user_id=request.decoded_token_result.get("user_id")
+           return fun(request, *args, **kwargs)
+             
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"message": "Token is expired"}, status=status.HTTP_498_INVALID_TOKEN)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"message": "Invalid token"}, status=status.HTTP_403_FORBIDDEN)
+           
+        
+    
+    return wrap
+        
+        # except jwt.InvalidTokenError:
+        #  return None
+
