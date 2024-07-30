@@ -104,7 +104,7 @@ def deposit_amount(request):
         new_initial_amount = current_amount + deposit_amount
         user_instance.initial_amount = new_initial_amount
         
-        transaction = Transaction.objects.create(user_id=user_instance, deposit_amount=deposit_amount, withdraw_amount=0)
+        transaction = Transaction.objects.create(user_id=user_instance, deposit_amount=deposit_amount, withdraw_amount=0,transaction_type="Deposit")
         transaction.save()
         user_instance.save()
 
@@ -112,49 +112,36 @@ def deposit_amount(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
-
-# # @permission_classes([IsAuthenticated])
-
-# @api_view(['POST'])
-# @utl.is_auth
-# def deposit_amount(request):
-#     try:
+    
+@api_view(['POST'])
+@utl.is_auth     
+def withdraw_amount(request):
      
-#         # token_key = request.META.get('AUTHORIZATION')
-      
-#         # user_instance = User.objects.get(token=token_key) 
-    
-#         # print("headers -->",request.headers)
+    try:
+        user_id = request.user_id  # This should be set by the is_auth decorator
+        print("User ID:", user_id)
 
-#         # decode_token_result = utl.decode_token(request.headers.get('AUTHORIZATION'))
-#         user_id=request.user_id
-#         print("Line 99",user_id)
+        withdraw_amount = request.data.get('withdraw_amount')
+        print("Line125>>")
+
+        if not isinstance(withdraw_amount, (int, float)) or withdraw_amount <= 0:
+            return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
         
-#         user_id = utl.is_auth.get('user_id')
-        
-#         deposit_amount = request.data.get('deposit_amount') 
+        user_instance=User.objects.get(id=user_id)
+        print("Line130>>",user_instance)
+         
+        #Update the users initial amount
+        current_amount=user_instance.initial_amount
+        new_initial_amount=current_amount-withdraw_amount
+        user_instance.initial_amount =new_initial_amount    
+        transaction = Transaction.objects.create(user_id=user_instance, deposit_amount=0, withdraw_amount=withdraw_amount,transaction_type="Withdraw")
+        transaction.save()
+        user_instance.save()  
 
-#         if not isinstance(deposit_amount, (int, float)) or deposit_amount <= 0:
-#             return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
-#         print("Line107>>.")
-#         user_instance = User.objects.get(id=user_id)
-#         # Update the user's initial amount  
-#         current_amount = user_instance.initial_amount
-#         new_initial_amount = current_amount + deposit_amount
-#         user_instance.initial_amount = new_initial_amount
-#         transaction = Transaction.objects.create(user_id = user_instance,deposit_amount=deposit_amount,withdraw_amount=0)
-#         transaction.save()
-#         user_instance.save()
+        return Response({"message": "Amount Withdraw successfully"}, status=status.HTTP_200_OK)  
 
-#         return Response({"message": "Amount deposited Successfully"}, status=status.HTTP_200_OK)
-
-    
-#     except Exception as e:
-#         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -165,7 +152,6 @@ class RefreshTokenView(APIView):
         payload = utl.decode_token(refresh_token)
         if not payload:
             return Response({'error': 'Invalid or expired refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
-
         try:
             user = User.objects.get(id=payload['user_id'])
         except User.DoesNotExist:
