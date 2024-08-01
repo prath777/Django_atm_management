@@ -35,12 +35,13 @@ class Transaction(models.Model):
 
     withdraw_amount=models.FloatField(max_length=20)
     transaction_type=models.CharField(default="Blank",max_length=50)
+    get_balance=models.FloatField(default=0)
 
 
     class Meta:
                 # db_table = 'user'
                 indexes = [
-                models.Index(fields=['deposit_amount','withdraw_amount','transaction_type']),
+                models.Index(fields=['deposit_amount','withdraw_amount','transaction_type','get_balance']),
                 ]
 
 
