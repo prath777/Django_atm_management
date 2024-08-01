@@ -6,7 +6,7 @@
 # ]
 
 
-from .views import UserView, user_login,user_logout,deposit_amount,withdraw_amount
+from .views import UserView, user_login,user_logout,deposit_amount,withdraw_amount,get_balance
 from django.urls import path
 
 from .views import UserView, RefreshTokenView
@@ -20,9 +20,12 @@ urlpatterns = [
     path('logout/' ,user_logout, name='logout'),
     
     # path('api/token/refresh/', RefreshTokenView.as_view(), name='token_refresh'),
+   
     
     path('deposit/',deposit_amount,name='deposit'),
-    path('withdraw/', withdraw_amount ,name='withdraw')
+    path('withdraw/', withdraw_amount ,name='withdraw'),
+    path('balance/', get_balance ,name='balance'),
+    
 
 ]  
 

@@ -60,11 +60,6 @@ def user_login(request):
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-# from rest_framework.decorators import  permission_classes
-# from rest_framework.response import Response
-# from rest_framework import status
-# from rest_framework.authtoken.models import Token
-
 @api_view(['POST'])
 # @is_authencaited()
 def user_logout(request):
@@ -122,13 +117,13 @@ def withdraw_amount(request):
         print("User ID:", user_id)
 
         withdraw_amount = request.data.get('withdraw_amount')
-        print("Line125>>")
+      
 
         if not isinstance(withdraw_amount, (int, float)) or withdraw_amount <= 0:
             return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
         
         user_instance=User.objects.get(id=user_id)
-        print("Line130>>",user_instance)
+        print("Line126>>",user_instance)
          
         #Update the users initial amount
         current_amount=user_instance.initial_amount
@@ -142,6 +137,26 @@ def withdraw_amount(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['POST'])
+@utl.is_auth   
+def get_balance(request):
+    try:
+        user_id=request.user_id
+        print("USERId",user_id)
+        user_instance=User.objects.get(id=user_id)
+        balance= user_instance.initial_amount
+        transaction = Transaction.objects.create(user_id=user_instance, deposit_amount=0, withdraw_amount=0,transaction_type="Balance check",get_balance=balance)
+        user_instance.save()
+        transaction.save()
+        
+        return Response({"balance": balance}, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+          return Response({'error>>': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
 
 
 
@@ -160,6 +175,10 @@ class RefreshTokenView(APIView):
         new_access_token = utl.generate_access_token(user)
 
         return Response({'access': new_access_token})
+    
+
+
+    
     
     
     
