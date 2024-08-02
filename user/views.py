@@ -59,34 +59,42 @@ def user_login(request):
 
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-
+#This code is consider from a video
 @api_view(['POST'])
-# @is_authencaited()
+@utl.is_auth
 def user_logout(request):
-    try: 
-        # Get the token from the request
-        username = request.username
-        user = User.objects.get(username = username)
-        user.is_login = False
-        return Response({'message': 'User logged out successfully'}, status=status.HTTP_200_OK)
-    except :
-        return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+     if request.method=="POST":
+          request.user.auth_token.delete()
+          return Response({"message":"you are logged out successfully"},status=status.HTTP_200_OK)
+
+        #Before
+    # try: 
+    #     # Get the token from the request
+    #     username = request.username
+    #     user = User.objects.get(username = username)
+    #     if username.is_authenticated:
+    #         return Response({'message': 'User is not authenticated'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    #     #Performing logout
+    #     user_logout(request)
+
+
+    #          # Remove the user's token
+    #     token = Token.objects.filter(username=username).first()
+    #     if token:
+    #         token.delete()
+        
+    #     return Response({'message': 'User logged out successfully'}, status=status.HTTP_200_OK)
+    
     # except Exception as e:
     #     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# from rest_framework.decorators import api_view
-# from rest_framework.response import Response
-# from rest_framework import status
-# from your_app.models import User, Transaction
-# import your_app.utils as utl  # Adjust the import according to your project structure
 
 @api_view(['POST'])
 @utl.is_auth
 def deposit_amount(request):
     try:
         user_id = request.user_id  # This should be set by the is_auth decorator
-        print("User ID:", user_id)
-
         deposit_amount = request.data.get('deposit_amount')
         
         if not isinstance(deposit_amount, (int, float)) or deposit_amount <= 0:
@@ -111,19 +119,15 @@ def deposit_amount(request):
 @api_view(['POST'])
 @utl.is_auth     
 def withdraw_amount(request):
-     
     try:
         user_id = request.user_id  # This should be set by the is_auth decorator
-        print("User ID:", user_id)
 
         withdraw_amount = request.data.get('withdraw_amount')
-      
 
         if not isinstance(withdraw_amount, (int, float)) or withdraw_amount <= 0:
             return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
         
         user_instance=User.objects.get(id=user_id)
-        print("Line126>>",user_instance)
          
         #Update the users initial amount
         current_amount=user_instance.initial_amount
@@ -136,7 +140,7 @@ def withdraw_amount(request):
         return Response({"message": "Amount Withdraw successfully"}, status=status.HTTP_200_OK)  
 
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'error>>': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 @api_view(['POST'])
@@ -144,21 +148,15 @@ def withdraw_amount(request):
 def get_balance(request):
     try:
         user_id=request.user_id
-        print("USERId",user_id)
         user_instance=User.objects.get(id=user_id)
         balance= user_instance.initial_amount
         transaction = Transaction.objects.create(user_id=user_instance, deposit_amount=0, withdraw_amount=0,transaction_type="Balance check",get_balance=balance)
         user_instance.save()
         transaction.save()
-        
         return Response({"balance": balance}, status=status.HTTP_200_OK)
-        
     except Exception as e:
           return Response({'error>>': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-
-
-
 
 class RefreshTokenView(APIView):
     def post(self, request):
