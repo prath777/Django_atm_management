@@ -1,4 +1,4 @@
-from .views import UserView, user_login,user_logout,deposit_amount,withdraw_amount,get_balance
+from .views import UserView, user_login,user_logout,deposit_amount,withdraw_amount,get_balance,show_transaction
 from django.urls import path
 
 from .views import UserView, RefreshTokenView
@@ -13,6 +13,8 @@ urlpatterns = [
     path('deposit/',deposit_amount,name='deposit'),
     path('withdraw/', withdraw_amount ,name='withdraw'),
     path('balance/', get_balance ,name='balance'),
+    path('show_transaction/',show_transaction ,name='balance')
+
 ]  
 
 
