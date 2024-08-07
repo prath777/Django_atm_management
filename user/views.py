@@ -17,7 +17,6 @@ import utils as utl
 
 class UserView(APIView):  
     def get(self, request):  
-        
         return Response({"status": "success", "data": "Login successful"}, status=status.HTTP_200_OK)  
 
     def post(self, request):  
@@ -45,9 +44,6 @@ def user_login(request):
             return Response({'error': 'Incorrect Password'}, status=status.HTTP_400_BAD_REQUEST)
     if user:
             access_token = utl.generate_access_token(user)
-            # token =Token.objects.get_or_create(user_id=user.id)
-            # token.key = access_token
-            # token.save()
             user.is_login=True #Set login is True
             user.is_active=True #Setting user is active or not
             user.token = str(access_token)
@@ -59,35 +55,16 @@ def user_login(request):
 
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-#This code is consider from a video
+
 @api_view(['POST'])
 @utl.is_auth
 def user_logout(request):
-     if request.method=="POST":
-          request.user.auth_token.delete()
+          user_id=request.user_id
+          user=User.objects.get(id=user_id)
+          user.is_login=False
+          user.token=""
+          user.save()
           return Response({"message":"you are logged out successfully"},status=status.HTTP_200_OK)
-
-        #Before
-    # try: 
-    #     # Get the token from the request
-    #     username = request.username
-    #     user = User.objects.get(username = username)
-    #     if username.is_authenticated:
-    #         return Response({'message': 'User is not authenticated'}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     #Performing logout
-    #     user_logout(request)
-
-
-    #          # Remove the user's token
-    #     token = Token.objects.filter(username=username).first()
-    #     if token:
-    #         token.delete()
-        
-    #     return Response({'message': 'User logged out successfully'}, status=status.HTTP_200_OK)
-    
-    # except Exception as e:
-    #     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -115,6 +92,7 @@ def deposit_amount(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     
 @api_view(['POST'])
 @utl.is_auth     
@@ -173,13 +151,3 @@ class RefreshTokenView(APIView):
         new_access_token = utl.generate_access_token(user)
 
         return Response({'access': new_access_token})
-    
-
-
-    
-    
-    
-    
-
-    
-    

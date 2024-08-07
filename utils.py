@@ -44,9 +44,9 @@ def decode_token(token):
 def is_auth(fun):
     @wraps(fun)
     def wrap(request,*args, **kwargs):
-        print("Line 49>>>",request.headers)
-        print("Line 50",request,*args,**kwargs)
-        # print("Line 51>>>",request.data)
+        print(request.headers)
+        print(request,*args,**kwargs)
+
 
         try:
            token= request.headers.get('Authorization')
@@ -69,6 +69,5 @@ def is_auth(fun):
     
     return wrap
         
-        # except jwt.InvalidTokenError:
-        #  return None
+        
 
