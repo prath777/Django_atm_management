@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User,Transaction
 
 class UserSerializer(serializers.ModelSerializer):
     username =serializers.CharField(max_length=200,required=True)
@@ -23,7 +23,11 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])  # This hashes the password
         user.save()
         return user
-    # def __str__(self):
-    #      return self.name
-    # def __str__(self):
-    #      return self.initial_amount
+    
+
+class TransactionSerializer(serializers.ModelSerializer):
+    username=serializers.CharField(source="user_id.username")
+    class Meta:
+        model = Transaction
+        fields = ['user_id','username','deposit_amount', 'withdraw_amount', 'transaction_type', 'get_balance']
+    

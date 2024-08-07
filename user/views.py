@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response  
 from rest_framework import status  
 from .models import User,Transaction
-from .serializers import UserSerializer
+from .serializers import UserSerializer,TransactionSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
@@ -49,12 +49,10 @@ def user_login(request):
             user.token = str(access_token)
             user.save()
 
-
             user_data = UserSerializer(user).data
             return Response({'token': access_token, 'data':user_data}, status=status.HTTP_200_OK)
 
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 @api_view(['POST'])
 @utl.is_auth
@@ -135,6 +133,29 @@ def get_balance(request):
     except Exception as e:
           return Response({'error>>': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+@api_view(['GET'])  
+@utl.is_auth   
+def show_transaction(request):
+        try:
+          user_id=request.user_id
+          user=User.objects.get(id=user_id)
+
+          transaction_type = request.query_params.get('transaction_type')
+          if transaction_type in ['deposit','withdraw']:
+               transaction=Transaction.objects.filter(user_id=user_id,transaction_type=transaction_type)
+          else:
+               transaction=request.Transaction.objects.filter(user_id=user_id)
+    
+          transaction_data = TransactionSerializer(transaction, many=True).data
+
+          return Response({"transactions":transaction_data},status=status.HTTP_200_OK)
+         
+        except user.DoesNotExist():
+             
+             return Response({"Error":"User doesn't Exist"},status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class RefreshTokenView(APIView):
     def post(self, request):
@@ -151,3 +172,5 @@ class RefreshTokenView(APIView):
         new_access_token = utl.generate_access_token(user)
 
         return Response({'access': new_access_token})
+
+
